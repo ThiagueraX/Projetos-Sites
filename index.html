@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbearia Premium | Estilo & Precisão</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Oculta a Barra de Rolagem Mantendo a Navegação Ativa */
+        html,
+        body {
+            overflow-x: hidden;
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE e Edge */
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari e Opera */
+        }
+
+        /* Header Transparente com Brilho Superior */
+        .glass-header {
+            background: rgba(15, 15, 20, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+        }
+
+        /* Oculta elementos antes do Scroll Reveal */
+        .reveal-hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform;
+        }
+
+        .reveal-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Efeito Underline Animado Dourado nos Links */
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #f59e0b;
+            box-shadow: 0 0 8px #f59e0b;
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Microinteração dos Botões com Brilho Neon */
+        .btn-premium {
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+            will-change: transform;
+        }
+
+        .btn-premium:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
+        }
+
+        .btn-premium:active {
+            transform: scale(0.98);
+        }
+
+        /* Card Hover com Iluminação nas Bordas */
+        .card-service {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-service:hover {
+            transform: translateY(-4px);
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+        }
+
+        /* Zoom Sutil em Imagens */
+        .img-zoom-container img {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .img-zoom-container:hover img {
+            transform: scale(1.05);
+        }
+
+        /* Texto com Gradiente Metálico Dourado */
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #fef3c7 0%, #f59e0b 50%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+
+<body class="bg-zinc-950 text-zinc-100 font-sans antialiased selection:bg-amber-500 selection:text-zinc-950">
+
+    <!-- HEADER SMOOTH -->
+    <header id="header" class="fixed top-0 left-0 w-full z-50 transition-all duration-300 py-5">
+        <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+            <a href="#"
+                class="text-2xl font-bold tracking-wider text-amber-500 flex items-center gap-2 drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]">
+                <i data-lucide="scissors" class="w-6 h-6"></i> NAVALHA & CO.
+            </a>
+
+            <!-- Navegação Desktop -->
+            <nav class="hidden md:flex items-center gap-8 text-sm uppercase tracking-widest font-medium text-zinc-300">
+                <a href="#servicos" class="nav-link hover:text-white transition-colors">Serviços</a>
+                <a href="#galeria" class="nav-link hover:text-white transition-colors">Galeria</a>
+                <a href="#agendar" class="nav-link hover:text-white transition-colors">Agendamento</a>
+            </nav>
+
+            <a href="#agendar"
+                class="hidden md:inline-block btn-premium bg-amber-500 text-zinc-950 font-bold px-5 py-2.5 rounded-sm text-sm tracking-wide hover:bg-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                Agendar Horário
+            </a>
+
+            <!-- Botão Mobile -->
+            <button id="menu-btn" class="md:hidden text-zinc-100 focus:outline-none" aria-label="Abrir Menu">
+                <i data-lucide="menu" class="w-7 h-7"></i>
+            </button>
+        </div>
+
+        <!-- Menu Mobile Slide/Fade -->
+        <div id="mobile-menu"
+            class="hidden md:hidden fixed inset-0 bg-zinc-950/95 backdrop-blur-lg z-40 flex-col justify-center items-center gap-8 text-xl tracking-wider">
+            <button id="close-btn" class="absolute top-6 right-6 text-zinc-400 hover:text-white">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            <a href="#servicos" class="mobile-item hover:text-amber-500 transition-colors">Serviços</a>
+            <a href="#galeria" class="mobile-item hover:text-amber-500 transition-colors">Galeria</a>
+            <a href="#agendar" class="mobile-item hover:text-amber-500 transition-colors">Agendamento</a>
+            <a href="#agendar"
+                class="mobile-item btn-premium bg-amber-500 text-zinc-950 font-bold px-8 py-3 rounded-sm text-base">
+                Agendar Horário
+            </a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section
+        class="relative min-h-screen flex items-center justify-center pt-24 pb-16 px-6 overflow-hidden bg-gradient-to-b from-zinc-900 via-zinc-950 to-zinc-950">
+        <div
+            class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/15 rounded-full blur-[140px] pointer-events-none">
+        </div>
+
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=1920&auto=format&fit=crop"
+                alt="Barbearia Ambiente" class="w-full h-full object-cover opacity-25 filter grayscale">
+            <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent"></div>
+        </div>
+
+        <div class="relative z-10 max-w-4xl text-center space-y-6">
+            <p
+                class="reveal-hidden text-amber-400 uppercase tracking-[0.3em] text-xs md:text-sm font-semibold drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                Estilo, Tradição e Elegância
+            </p>
+            <h1 class="reveal-hidden text-4xl md:text-7xl font-extrabold tracking-tight text-zinc-100 leading-tight">
+                Sua melhor versão <br><span class="text-gradient-gold">começa aqui.</span>
+            </h1>
+            <p class="reveal-hidden text-zinc-300 text-base md:text-lg max-w-xl mx-auto font-light leading-relaxed">
+                Cortes de alta precisão, barba alinhada com toalha quente e uma experiência pensada para o homem
+                moderno.
+            </p>
+            <div class="reveal-hidden pt-4">
+                <a href="#agendar"
+                    class="btn-premium inline-block bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold px-8 py-4 rounded-sm tracking-wide text-sm md:text-base shadow-[0_0_25px_rgba(245,158,11,0.4)]">
+                    AGENDAR HORÁRIO
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO SERVIÇOS -->
+    <section id="servicos" class="py-24 px-6 max-w-7xl mx-auto relative">
+        <div class="text-center space-y-3 mb-16">
+            <h2 class="reveal-hidden text-3xl md:text-4xl font-bold tracking-tight text-zinc-100">Nossos Serviços</h2>
+            <p class="reveal-hidden text-amber-500 text-sm tracking-wider uppercase font-semibold">Excelência em cada
+                detalhe</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div
+                class="reveal-hidden card-service bg-gradient-to-b from-zinc-900 to-zinc-900/60 border border-zinc-700/60 p-8 rounded-lg shadow-lg space-y-4">
+                <div
+                    class="w-12 h-12 bg-amber-500/20 text-amber-400 flex items-center justify-center rounded-md border border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                    <i data-lucide="scissors" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-zinc-100">Corte Cabelo</h3>
+                <p class="text-zinc-400 text-sm leading-relaxed">Atendimento personalizado com lavagem, corte na tesoura
+                    ou máquina e finalização com pomada premium.</p>
+                <div class="pt-4 border-t border-zinc-800 flex justify-between items-center">
+                    <span class="text-xs text-zinc-500 font-semibold">DURAÇÃO: 45 MIN</span>
+                    <span class="text-xl font-bold text-gradient-gold">R$ 70</span>
+                </div>
+            </div>
+
+            <div
+                class="reveal-hidden card-service bg-gradient-to-b from-zinc-900 to-zinc-900/60 border border-zinc-700/60 p-8 rounded-lg shadow-lg space-y-4">
+                <div
+                    class="w-12 h-12 bg-amber-500/20 text-amber-400 flex items-center justify-center rounded-md border border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                    <i data-lucide="user-check" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-zinc-100">Barba Completa</h3>
+                <p class="text-zinc-400 text-sm leading-relaxed">Modelagem de barba com alinhamento, protocolo de toalha
+                    quente, óleos essenciais e massagem facial.</p>
+                <div class="pt-4 border-t border-zinc-800 flex justify-between items-center">
+                    <span class="text-xs text-zinc-500 font-semibold">DURAÇÃO: 40 MIN</span>
+                    <span class="text-xl font-bold text-gradient-gold">R$ 60</span>
+                </div>
+            </div>
+
+            <div
+                class="reveal-hidden card-service bg-gradient-to-b from-zinc-900 to-zinc-900/60 border border-zinc-700/60 p-8 rounded-lg shadow-lg space-y-4">
+                <div
+                    class="w-12 h-12 bg-amber-500/20 text-amber-400 flex items-center justify-center rounded-md border border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                    <i data-lucide="crown" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-zinc-100">Combo Imperial</h3>
+                <p class="text-zinc-400 text-sm leading-relaxed">A experiência completa. Corte de cabelo + barba
+                    completa com toalha quente e sobrancelha inclusa.</p>
+                <div class="pt-4 border-t border-zinc-800 flex justify-between items-center">
+                    <span class="text-xs text-zinc-500 font-semibold">DURAÇÃO: 80 MIN</span>
+                    <span class="text-xl font-bold text-gradient-gold">R$ 110</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GALERIA (6 IMAGENS) -->
+    <section id="galeria"
+        class="py-24 bg-gradient-to-b from-zinc-950 via-zinc-900/40 to-zinc-950 border-y border-zinc-800/80">
+        <div class="max-w-7xl mx-auto px-6 space-y-12">
+            <div class="text-center space-y-2">
+                <h2 class="reveal-hidden text-3xl md:text-4xl font-bold tracking-tight text-zinc-100">Nossa Galeria</h2>
+                <p class="reveal-hidden text-amber-500 text-sm tracking-wider uppercase font-semibold">Ambiente &
+                    Resultados</p>
+            </div>
+
+            <!-- Grid de 6 fotos (3 colunas no desktop, 2 no tablet, 1 no mobile) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <!-- Foto 1 -->
+                <div
+                    class="reveal-hidden img-zoom-container overflow-hidden rounded-lg border border-zinc-800/80 shadow-lg bg-zinc-900 h-72">
+                    <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=800&auto=format&fit=crop"
+                        alt="Corte Barbearia" class="w-full h-full object-cover">
+                </div>
+                <!-- Foto 2 -->
+                <div
+                    class="reveal-hidden img-zoom-container overflow-hidden rounded-lg border border-zinc-800/80 shadow-lg bg-zinc-900 h-72">
+                    <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=800&auto=format&fit=crop"
+                        alt="Barbearia Cadeira" class="w-full h-full object-cover">
+                </div>
+                <!-- Foto 3 -->
+                <div
+                    class="reveal-hidden img-zoom-container overflow-hidden rounded-lg border border-zinc-800/80 shadow-lg bg-zinc-900 h-72">
+                    <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=800&auto=format&fit=crop"
+                        alt="Detalhe Navalha" class="w-full h-full object-cover">
+                </div>
+                <!-- Foto 4 -->
+                <div
+                    class="reveal-hidden img-zoom-container overflow-hidden rounded-lg border border-zinc-800/80 shadow-lg bg-zinc-900 h-72">
+                    <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=800&auto=format&fit=crop"
+                        alt="Modelagem de Barba" class="w-full h-full object-cover">
+                </div>
+                <!-- Foto 5 -->
+                <div
+                    class="reveal-hidden img-zoom-container overflow-hidden rounded-lg border border-zinc-800/80 shadow-lg bg-zinc-900 h-72">
+                    <img src="https://images.unsplash.com/photo-1517832606299-7ae9b720a186?q=80&w=800&auto=format&fit=crop"
+                        alt="Ferramentas Barbearia" class="w-full h-full object-cover">
+                </div>
+                <!-- Foto 6 -->
+                <div
+                    class="reveal-hidden img-zoom-container overflow-hidden rounded-lg border border-zinc-800/80 shadow-lg bg-zinc-900 h-72">
+                    <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=800&auto=format&fit=crop"
+                        alt="Finalização de Estilo" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO DE AGENDAMENTO -->
+    <section id="agendar" class="py-24 px-6 relative overflow-hidden bg-zinc-950">
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/15 rounded-full blur-[140px] pointer-events-none">
+        </div>
+
+        <div class="max-w-3xl mx-auto relative z-10">
+            <div class="text-center space-y-3 mb-12">
+                <p
+                    class="reveal-hidden text-amber-400 uppercase tracking-[0.25em] text-xs font-bold drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
+                    Planeje Sua Visita
+                </p>
+                <h2 class="reveal-hidden text-3xl md:text-5xl font-extrabold tracking-tight text-zinc-100">
+                    Agende Seu Horário
+                </h2>
+                <p class="reveal-hidden text-zinc-400 text-sm">
+                    Recomendamos realizar o agendamento com antecedência para garantir o seu profissional preferido.
+                </p>
+            </div>
+
+            <form
+                class="reveal-hidden bg-zinc-900/90 backdrop-blur-md border border-amber-500/40 p-8 md:p-10 rounded-xl shadow-[0_0_35px_rgba(245,158,11,0.1)] space-y-6 hover:border-amber-500/70 transition-all duration-300">
+                <div class="space-y-2">
+                    <label class="block text-xs uppercase tracking-wider font-bold text-amber-400">
+                        Nome Completo
+                    </label>
+                    <input type="text" placeholder="Seu nome" required
+                        class="w-full bg-zinc-950 border border-zinc-700/80 rounded-md px-4 py-3.5 text-zinc-100 placeholder-zinc-500 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs uppercase tracking-wider font-bold text-amber-400">
+                        WhatsApp / Telefone
+                    </label>
+                    <input type="tel" placeholder="(11) 99999-9999" required
+                        class="w-full bg-zinc-950 border border-zinc-700/80 rounded-md px-4 py-3.5 text-zinc-100 placeholder-zinc-500 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-wider font-bold text-amber-400">
+                            Serviço
+                        </label>
+                        <select required
+                            class="w-full bg-zinc-950 border border-zinc-700/80 rounded-md px-4 py-3.5 text-zinc-100 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all">
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="cabelo">Corte Cabelo</option>
+                            <option value="barba">Barba Completa</option>
+                            <option value="combo">Combo Imperial</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-wider font-bold text-amber-400">
+                            Barbeiro
+                        </label>
+                        <select
+                            class="w-full bg-zinc-950 border border-zinc-700/80 rounded-md px-4 py-3.5 text-zinc-100 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all">
+                            <option value="qualquer">Sem preferência</option>
+                            <option value="barbeiro1">Carlos "Navalha"</option>
+                            <option value="barbeiro2">Lucas Silva</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-wider font-bold text-amber-400">
+                            Data
+                        </label>
+                        <input type="date" required
+                            class="w-full bg-zinc-950 border border-zinc-700/80 rounded-md px-4 py-3.5 text-zinc-100 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all [color-scheme:dark]">
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-wider font-bold text-amber-400">
+                            Horário
+                        </label>
+                        <select required
+                            class="w-full bg-zinc-950 border border-zinc-700/80 rounded-md px-4 py-3.5 text-zinc-100 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all">
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                            <option value="18:00">18:00</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit"
+                        class="btn-premium w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-extrabold py-4 rounded-md tracking-wider text-sm uppercase shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+                        CONFIRMAR AGENDAMENTO
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="py-12 border-t border-zinc-800/80 bg-zinc-950 text-zinc-400 text-sm">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="space-y-1 text-center md:text-left">
+                <p>© 2026 Navalha & Co. Todos os direitos reservados.</p>
+                <p class="text-xs text-zinc-400">
+                    Website por <span class="text-amber-500 font-medium">NSG Agency - Thiago Gro</span> | Contato: <a
+                        href="mailto:AgencyNSG@gmail.com"
+                        class="hover:text-amber-400 underline transition-colors">AgencyNSG@gmail.com</a>
+                </p>
+            </div>
+            <div class="flex gap-6 text-zinc-400">
+                <a href="#" class="hover:text-amber-400 transition-colors" aria-label="Instagram"><i
+                        data-lucide="instagram" class="w-5 h-5"></i></a>
+                <a href="#" class="hover:text-amber-400 transition-colors" aria-label="Facebook"><i
+                        data-lucide="facebook" class="w-5 h-5"></i></a>
+                <a href="#" class="hover:text-amber-400 transition-colors" aria-label="Localização"><i
+                        data-lucide="map-pin" class="w-5 h-5"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        lucide.createIcons();
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('reveal-visible');
+                    }, 80);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal-hidden').forEach((el) => {
+            observer.observe(el);
+        });
+
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 40) {
+                header.classList.add('glass-header', 'py-3');
+                header.classList.remove('py-5');
+            } else {
+                header.classList.remove('glass-header', 'py-3');
+                header.classList.add('py-5');
+            }
+        });
+
+        const menuBtn = document.getElementById('menu-btn');
+        const closeBtn = document.getElementById('close-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileItems = document.querySelectorAll('.mobile-item');
+
+        function toggleMenu(show) {
+            if (show) {
+                mobileMenu.classList.remove('hidden');
+                mobileMenu.classList.add('flex');
+            } else {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.classList.remove('flex');
+            }
+        }
+
+        menuBtn.addEventListener('click', () => toggleMenu(true));
+        closeBtn.addEventListener('click', () => toggleMenu(false));
+        mobileItems.forEach(item => item.addEventListener('click', () => toggleMenu(false)));
+    </script>
+</body>
+
+</html>
