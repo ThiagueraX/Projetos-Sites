@@ -12,7 +12,7 @@ export default async function handler(req,res) {
   res.setHeader('Content-Type','application/json; charset=utf-8');
   res.setHeader('Cache-Control','no-store');
   if(req.method !== 'POST') return res.status(405).json({error:'Use POST'});
-  const key=process.env.ANTHROPIC_API_KEY;
+  const key=process.env.ANTHROPIC_API_KEY||process.env.ANTROPHIC_API_KEY;
   if(!key) return res.status(503).json({error:'Claude preparado, mas falta configurar ANTHROPIC_API_KEY no Vercel. A chave deve ser criada no Claude Console, sem enviá-la por chat.',code:'setup_required'});
   const ip=String(req.headers['x-forwarded-for']||req.socket?.remoteAddress||'unknown').split(',')[0];
   const now=Date.now(),timestamps=(RATE.get(ip)||[]).filter(t=>t>now-60000);
