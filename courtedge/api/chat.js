@@ -23,6 +23,27 @@ export default async function handler(req,res) {
   const messages=input.slice(-12).filter(x=>x&&['user','assistant'].includes(x.role)&&typeof x.content==='string'&&x.content.trim()).map(x=>({role:x.role,content:x.content.slice(0,3500)}));
   if(messages.length===0||messages[messages.length-1].role!=='user')return res.status(400).json({error:'Envie uma pergunta.'});
   try {
+    let verifiedData='';
+    const playerId=String(req.body?.context?.playerId||'');
+    if(/^\d{3,12}$/.test(playerId)){
+      try{
+        const season=new Date().getUTCMonth()>=8?new Date().getUTCFullYear()+1:new Date().getUTCFullYear();
+        const url='https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/'+playerId+'/gamelog?season='+season;
+        const statRes=await fetch(url,{signal:AbortSignal.timeout(8500)});
+        if(statRes.ok){
+          const raw=await statRes.json(),labels=raw.labels||[], events=raw.events||{};
+          const entries=[];
+          for(const typ of raw.seasonTypes||[])for(const cat of typ.categories||[])for(const item of cat.events||[]){
+            const game=events[item.eventId]||{};
+            if(String(game.gameDate||'') < (season-1)+'-10-20')continue;
+            const stats=Object.fromEntries(['MIN','PTS','REB','AST','3PT','TO','STL','BLK'].map(k=>[k,item.stats?.[labels.indexOf(k)]]));
+            entries.push({id:item.eventId,date:game.gameDate,opponent:game.opponent?.abbreviation,stats});
+          }
+          const latest=[...new Map(entries.map(x=>[x.id,x])).values()].sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,10);
+          if(latest.length)verifiedData='\nDados estruturados de fonte ESPN (extraídos no servidor, não estimados): '+JSON.stringify({playerId,source:'https://www.espn.com/nba/player/gamelog/_/id/'+playerId,updatedAt:new Date().toISOString(),games:latest})+'\nUse estes números como evidência, calcule médias e frequências corretamente. Não invente dados ausentes nem assuma que estatísticas de jogos anteriores garantem resultados futuros.';
+        }
+      }catch{verifiedData='\nNão foi possível recuperar o histórico estruturado ESPN neste momento. Não invente estatísticas.'}
+    }
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),48000);
     const response=await fetch('https://api.anthropic.com/v1/messages',{
@@ -30,7 +51,7 @@ export default async function handler(req,res) {
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
       body:JSON.stringify({
         model:process.env.CLAUDE_MODEL||'claude-sonnet-5-5',
-        max_tokens:1900,system:SYSTEM,messages,
+        max_tokens:2200,system:SYSTEM+verifiedData,messages,
         tools:[{type:'web_search_20250305',name:'web_search',max_uses:3}]
       }),
       signal:controller.signal
