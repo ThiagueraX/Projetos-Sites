@@ -38,6 +38,6 @@ export default async function handler(req,res){
   }));
  }
  const injuries=(data.injuries||[]).map(t=>({team:t.team?.displayName,players:(t.injuries||[]).map(i=>({name:i.athlete?.displayName,status:i.status,detail:i.details?.detail}))}));
- return res.status(200).json({event:id,source:'ESPN NBA game summary',sourceUrl:'https://www.espn.com/nba/game/_/gameId/'+id,updatedAt:new Date().toISOString(),players,injuries,header:data.header?.competitions?.[0]?.competitors?.map(c=>({team:c.team?.displayName,score:c.score}))});
+ return res.status(200).json({event:id,completed:Boolean(data.header?.competitions?.[0]?.status?.type?.completed),source:'ESPN NBA game summary',sourceUrl:'https://www.espn.com/nba/game/_/gameId/'+id,updatedAt:new Date().toISOString(),players,injuries,header:data.header?.competitions?.[0]?.competitors?.map(c=>({team:c.team?.displayName,score:c.score}))});
  }catch(e){return res.status(502).json({error:'Não foi possível carregar informações do jogo.',detail:String(e.message).slice(0,120)})}
 }
