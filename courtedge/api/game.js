@@ -23,6 +23,20 @@ export default async function handler(req,res){
    players.push({id:p.id,name:p.displayName||p.fullName,team:team.team?.abbreviation,headshot:p.headshot?.href,position:p.position?.abbreviation});
   }
  }
+ if(players.length<8){
+  const teams=(data.header?.competitions?.[0]?.competitors||[]).map(c=>c.team).filter(t=>/^\d+$/.test(String(t?.id||''))).slice(0,2);
+  await Promise.all(teams.map(async team=>{
+    try{
+      const r=await fetch(BASE+'teams/'+team.id+'/roster',{signal:AbortSignal.timeout(7000)});
+      if(!r.ok)return;const d=await r.json();
+      const entries=(d.athletes||[]).flatMap(group=>group.items||[group]);
+      for(const p of entries){
+        if(!p?.id||players.some(x=>String(x.id)===String(p.id)))continue;
+        players.push({id:p.id,name:p.displayName||p.fullName,team:team.abbreviation,headshot:p.headshot?.href,position:p.position?.abbreviation});
+      }
+    }catch{}
+  }));
+ }
  const injuries=(data.injuries||[]).map(t=>({team:t.team?.displayName,players:(t.injuries||[]).map(i=>({name:i.athlete?.displayName,status:i.status,detail:i.details?.detail}))}));
  return res.status(200).json({event:id,source:'ESPN NBA game summary',sourceUrl:'https://www.espn.com/nba/game/_/gameId/'+id,updatedAt:new Date().toISOString(),players,injuries,header:data.header?.competitions?.[0]?.competitors?.map(c=>({team:c.team?.displayName,score:c.score}))});
  }catch(e){return res.status(502).json({error:'Não foi possível carregar informações do jogo.',detail:String(e.message).slice(0,120)})}
