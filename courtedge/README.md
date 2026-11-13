@@ -1,22 +1,18 @@
-# COURTEDGE — Assistente NBA
+# COURTEDGE NBA — assistente com Claude
 
-Interface mobile-first de conversa em português para discutir estatísticas da NBA, sem pedir odds.
+Site: https://courtedge-nba.vercel.app
+Código: pasta courtedge de ThiagueraX/Projetos-Sites
 
-## Estado atual
-- Interface e histórico local disponíveis sem backend.
-- Para respostas reais: hospedar esta pasta como projeto Vercel **com diretório raiz `courtedge`**.
-- Definir a variável de ambiente **`OPENAI_API_KEY`** somente no servidor. Opcional: `OPENAI_MODEL` (padrão: `gpt-5-mini`).
-- O endpoint `/api/chat` usa a Responses API e a ferramenta `web_search`, sujeita a uso cobrado e disponibilidade do provedor. A ferramenta não substitui um provedor NBA com estatísticas verificadas.
-- `/api/health` informa se a chave está configurada sem expô-la.
-- Não abra este app ao público com a API ativada sem proteção por login e rate limiting distribuído (o limitador em memória é apenas básico).
+## Configuração
+- Criar chave no Claude Console: https://platform.claude.com/settings/keys
+- Verificar créditos API: https://platform.claude.com/settings/billing
+- Vercel > Environment Variables: ANTHROPIC_API_KEY (Secret/Sensitive, Production)
+- Fazer novo deployment Production para aplicar a chave.
+- Opcional: CLAUDE_MODEL (padrão claude-sonnet-5-5).
+- /api/health retorna ai:true quando a chave é reconhecida.
 
-## Publicação
-1. Importar o repositório `ThiagueraX/Projetos-Sites` no Vercel.
-2. Definir Root Directory: `courtedge`.
-3. Adicionar `OPENAI_API_KEY` em Environment Variables.
-4. Fazer deploy e abrir o domínio HTTPS gerado.
+## Análise
+Backend usa Claude Messages API e web_search_20250305 (até 3 pesquisas por resposta). O prompt exige fontes quando disponíveis e informa incerteza. Analisa estatísticas dos últimos 5/10 jogos, minutos, defesas, ritmo e desfalques. Não pede odds obrigatoriamente.
 
-O GitHub Pages pode mostrar a interface estática, mas **não executa** o backend Node em `api/chat.js`. Na página estática, respostas de IA ficam desabilitadas. Para bot conversacional real, use hospedagem com funções de servidor.
-
-## Privacidade e responsabilidade
-Histórico salvo no localStorage do aparelho. O serviço de IA tem custo por uso; evite compartilhar a chave. O app é ferramenta de estudo, não recomendação ou garantia de apostas. As estatísticas e notícias pesquisadas devem ser checadas em fontes verificáveis.
+## Segurança e custo
+O endpoint ainda é público. Antes de adicionar créditos e usar regularmente, habilite autenticação e limites robustos; o rate limit atual em memória é apenas básico. Não exponha a chave no GitHub. A API e a ferramenta web search podem gerar custos. Histórico local no navegador. Nenhuma análise garante resultado.
