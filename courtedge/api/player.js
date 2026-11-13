@@ -7,10 +7,10 @@ export default async function handler(req,res){
   const upstream=await fetch(BASE+id+'/gamelog?season='+season,{signal:AbortSignal.timeout(9500)});
   if(!upstream.ok)throw Error('ESPN HTTP '+upstream.status);
   const data=await upstream.json();
-  if(req.query.debug==='shape')return res.status(200).json({rootKeys:Object.keys(data),labels:data.labels,names:data.names,displayNames:data.displayNames,eventExample:Object.entries(data.events||{}).slice(0,1),seasonTypes:(data.seasonTypes||[]).slice(0,2).map(t=>({keys:Object.keys(t),categorySample:(t.categories||[]).slice(0,2).map(c=>({keys:Object.keys(c),labels:c.labels,firstEvent:c.events?.[0]}))})),categories:(data.categories||[]).slice(0,1),statsSample:data.stats?.slice?.(0,2)});
-  const labels=[],rows=[];const events=data.events||{};
+
+  const labels=Array.isArray(data.labels)?data.labels:[],rows=[];const events=data.events||{};
   function scanCategory(cat){
-   if(cat.labels?.length)labels.splice(0,labels.length,...cat.labels);
+   // ESPN maps stats columns through the top-level data.labels array.
    for(const group of cat.events||[]){
     const event=events[group.eventId]||events[group.id]||{};
     rows.push({id:group.eventId||group.id,date:event.gameDate||event.date||group.date,opponent:event.opponent?.abbreviation||event.opponent?.displayName||group.opponent,homeAway:event.homeAway,stats:group.stats||group.statistics||[],result:event.gameResult,score:event.score,minutes:group.minutes});
@@ -19,7 +19,7 @@ export default async function handler(req,res){
   for(const seasonType of data.seasonTypes||[])for(const c of seasonType.categories||[])scanCategory(c);
   if(!rows.length)for(const c of data.categories||[])scanCategory(c);
   // If provider changes schema, explicitly indicate missing data rather than fabricate.
-  const unique=[...new Map(rows.filter(x=>x.id).map(x=>[x.id,x])).values()].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const seasonStart=(season-1)+'-10-20';const unique=[...new Map(rows.filter(x=>x.id&&String(x.date||'')>=seasonStart).map(x=>[x.id,x])).values()].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
   const recent=unique.slice(0,20).map(x=>({id:x.id,date:x.date,opponent:x.opponent,homeAway:x.homeAway,stats:Object.fromEntries(labels.map((name,i)=>[name,x.stats[i]])),result:x.result,score:x.score}));
   return res.status(200).json({id,season,source:'ESPN player game log',sourceUrl:'https://www.espn.com/nba/player/gamelog/_/id/'+id,updatedAt:new Date().toISOString(),labels,games:recent,available:recent.length>0});
  }catch(e){return res.status(502).json({error:'Não foi possível obter os últimos jogos do atleta.',detail:String(e.message).slice(0,130)})}
