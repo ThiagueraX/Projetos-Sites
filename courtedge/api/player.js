@@ -7,7 +7,7 @@ export default async function handler(req,res){
   const upstream=await fetch(BASE+id+'/gamelog?season='+season,{signal:AbortSignal.timeout(9500)});
   if(!upstream.ok)throw Error('ESPN HTTP '+upstream.status);
   const data=await upstream.json();
-  if(req.query.debug==='shape')return res.status(200).json({rootKeys:Object.keys(data),eventExample:Object.entries(data.events||{}).slice(0,1),seasonTypes:(data.seasonTypes||[]).slice(0,2).map(t=>({keys:Object.keys(t),categorySample:(t.categories||[]).slice(0,2).map(c=>({keys:Object.keys(c),labels:c.labels,firstEvent:c.events?.[0]}))})),categories:(data.categories||[]).slice(0,1),statsSample:data.stats?.slice?.(0,2)});
+  if(req.query.debug==='shape')return res.status(200).json({rootKeys:Object.keys(data),labels:data.labels,names:data.names,displayNames:data.displayNames,eventExample:Object.entries(data.events||{}).slice(0,1),seasonTypes:(data.seasonTypes||[]).slice(0,2).map(t=>({keys:Object.keys(t),categorySample:(t.categories||[]).slice(0,2).map(c=>({keys:Object.keys(c),labels:c.labels,firstEvent:c.events?.[0]}))})),categories:(data.categories||[]).slice(0,1),statsSample:data.stats?.slice?.(0,2)});
   const labels=[],rows=[];const events=data.events||{};
   function scanCategory(cat){
    if(cat.labels?.length)labels.splice(0,labels.length,...cat.labels);
