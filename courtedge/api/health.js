@@ -1,1 +1,1 @@
-export default function handler(req,res){res.setHeader('Cache-Control','no-store');res.status(200).json({ai:Boolean(process.env.ANTHROPIC_API_KEY),provider:'claude',service:'COURTEDGE'})}
+export default function handler(req,res){res.setHeader('Cache-Control','no-store');res.status(200).json({ai:Boolean(process.env.ANTHROPIC_API_KEY||process.env.ANTROPHIC_API_KEY),provider:'claude',service:'COURTEDGE'})}
