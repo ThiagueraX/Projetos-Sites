@@ -30,7 +30,15 @@ export default async function handler(req,res){
     signal:controller.signal
   }).finally(()=>clearTimeout(timer));
   const data=await response.json().catch(()=>({}));
-  if(!response.ok)return res.status(502).json({error:'Provedor de IA indisponível ('+response.status+'). Consulte configuração e limites.'});
+  if(!response.ok){
+   const reason=String(data?.error?.code||data?.error?.type||'');
+   if(response.status===429){
+    const quota=/insufficient_quota|billing|quota/i.test(reason)||/exceeded your current quota|billing/i.test(String(data?.error?.message||''));
+    return res.status(503).json({error:quota?'A chave está conectada, mas a conta da API não tem cota/créditos disponíveis. Confira Billing e Limits na OpenAI Platform.':'A OpenAI limitou as requisições no momento. Aguarde alguns minutos e confira Limits na OpenAI Platform.',code:quota?'api_quota':'api_rate_limit'});
+   }
+   if(response.status===401||response.status===403)return res.status(503).json({error:'A API recusou a autenticação ou o acesso ao modelo. Verifique a chave e as permissões na OpenAI Platform.',code:'api_auth'});
+   return res.status(502).json({error:'A OpenAI retornou erro ('+response.status+'). Verifique as permissões do modelo e o estado da API.',code:'api_error'});
+  }
   let text=data.output_text||data.output?.filter(o=>o.type==='message')?.flatMap(o=>o.content||[])?.filter(c=>c.type==='output_text')?.map(c=>c.text).join('\n')||'Não foi possível gerar uma resposta.';
   const urls=[];
   for(const out of data.output||[])for(const c of out.content||[])for(const a of c.annotations||[])if(a.type==='url_citation'&&a.url&&!urls.includes(a.url))urls.push(a.url);
