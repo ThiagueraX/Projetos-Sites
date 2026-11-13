@@ -40,7 +40,7 @@ a{color:var(--lime)}h1,h2,h3,p{margin-top:0}h1{font-size:clamp(26px,3.5vw,38px);
 <div class="sectionHead"><h2>Jogos da NBA</h2><div class="dateControl"><button class="btn" id="prevDay" aria-label="Dia anterior">‹</button><input id="gameDate" type="date" aria-label="Escolher data"><button class="btn" id="nextDay" aria-label="Dia seguinte">›</button><button class="btn flat" id="refresh">↻ Atualizar</button></div></div>
 <div id="games" class="games"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
 <div class="two"><div class="panel"><h2 id="rosterTitle">Escolha uma partida</h2><p class="panelSubtitle">Veja os atletas e abra as estatísticas individuais.</p><input class="input" id="playerFilter" placeholder="🔎 Filtrar jogadores pelo nome..." aria-label="Filtrar jogadores"><div class="roster" id="roster" style="margin-top:12px"><div class="empty">Selecione um jogo acima para carregar os jogadores.</div></div></div>
-<div class="panel" id="insightsCard"><h2>Inteligência de jogo</h2><p class="panelSubtitle">Escolha um atleta para visualizar o histórico recente e conversar sobre ele com o Claude.</p><div class="empty">📊 Os números aparecem aqui depois que você selecionar um jogador.</div></div></div></section>
+<div class="panel" id="insightsCard"><h2>Inteligência de jogo</h2><p class="panelSubtitle">Escolha um atleta para visualizar o histórico recente e conversar sobre ele com o Claude.</p><div class="empty">📊 Os números aparecem aqui depois que você selecionar um jogador.</div></div></div><div class="panel" style="margin-top:18px"><div class="sectionHead" style="margin:0 0 12px"><h2>Meu acompanhamento</h2><button id="reviewAll" class="btn">↻ Conferir resultados</button></div><p class="panelSubtitle">Salve linhas para comparar o histórico com o resultado oficial depois da partida, sem precisar registrar odds.</p><div id="watchList"><div class="empty">Nenhuma linha salva.</div></div></div></section>
 <section id="page-players" class="pageOnly"><div class="eyebrow">ANÁLISE ESTATÍSTICA</div><h1>Desempenho de jogadores</h1><p class="muted">Selecione um jogador nos jogos do dashboard ou pesquise pelo ID ESPN.</p><div class="panel"><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="idInput" class="input" style="flex:1;min-width:170px" placeholder="ID do atleta na ESPN (ex.: 4433247)"><button class="btn primary" id="loadId">Analisar</button></div><div id="fullStats" style="margin-top:20px"><div class="empty">Abra um atleta para carregar jogos, médias e tendências reais.</div></div></div></section>
 <section id="page-chat" class="pageOnly"><div class="eyebrow">ASSISTENTE CONVERSACIONAL</div><h1>Converse com o Claude</h1><p class="muted">Análises em português, com pesquisa, contexto de jogadores e informações de fonte.</p><div class="panel chatPane" id="chatPanel"><div class="chatTop"><div><h2>✦ Assistente NBA</h2><small id="chatContext">Conversa geral • análise com dados atuais</small></div><button class="btn" id="newChat" type="button">Nova conversa</button></div><div class="chatMessages" id="chatMessages"></div><div class="suggestions"><button data-suggest="Analise os jogos da NBA desta data, com fontes e desfalques confirmados.">Jogos da rodada</button><button data-suggest="Compare os últimos dez jogos deste jogador e explique seus riscos, sem usar odds.">Últimos 10 jogos</button><button data-suggest="Como a defesa adversária pode afetar pontos, rebotes e assistências?">Impacto da defesa</button></div><form class="chatForm" id="chatForm"><textarea id="question" rows="2" placeholder="Pergunte ao Claude sobre um jogo ou jogador..." aria-label="Mensagem para o Claude"></textarea><button class="send" id="sendBtn" title="Enviar" type="submit">➤</button></form><div class="chatHint">Fontes e estatísticas podem mudar. Nenhuma análise é garantia de resultado.</div></div></section>
 </div></main>
@@ -61,6 +61,44 @@ function formatDate(iso){try{return new Intl.DateTimeFormat('pt-BR',{day:'2-digi
 function number(x){const v=Number(String(x||'').replace(',','.'));return Number.isFinite(v)?v:null}
 function nice(x){return x==null?'—':x.toLocaleString('pt-BR',{maximumFractionDigits:1})}
 function save(){localStorage.setItem('courtedge_chat_v2',JSON.stringify(state.messages.slice(-60)))}
+const watchKey='courtedge_watch_v1';let watch=[];try{watch=JSON.parse(localStorage.getItem(watchKey)||'[]');if(!Array.isArray(watch))watch=[]}catch{watch=[]}
+function saveWatchList(){localStorage.setItem(watchKey,JSON.stringify(watch.slice(-40)))}
+function trackPlayer(stat,threshold){
+ if(!state.player||!state.game){alert('Selecione um jogo no Dashboard para acompanhar a linha nesta partida.');return}
+ if(!Number.isFinite(Number(threshold))||Number(threshold)<0)return;
+ const id=state.player.id+'_'+state.game.id+'_'+stat+'_'+threshold;
+ if(watch.some(x=>x.id===id)){alert('Essa linha já está no acompanhamento.');return}
+ watch.unshift({id,playerId:state.player.id,playerName:state.player.name,event:state.game.id,gameLabel:state.game.away.abbr+' × '+state.game.home.abbr,metric:stat,threshold:Number(threshold),status:'pending',date:state.game.date,created:new Date().toISOString()});
+ saveWatchList();renderWatch();alert('Linha salva no acompanhamento. Você pode conferir o resultado quando o jogo terminar.');
+}
+function renderWatch(){
+ const out=$('#watchList');if(!out)return;clear(out);
+ if(!watch.length){out.append(el('div','empty','Nenhuma linha salva. Escolha um jogador, informe a linha de pontos, rebotes ou assistências e toque em Salvar acompanhamento.'));return}
+ for(const w of watch){
+   const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #293a4e;flex-wrap:wrap';
+   const info=el('div');info.style.cssText='flex:1;min-width:190px';
+   info.append(el('strong','',w.playerName+' • '+w.threshold+'+ '+{PTS:'pontos',REB:'rebotes',AST:'assistências','3PT':'triplos',MIN:'minutos'}[w.metric]));
+   info.append(el('div','muted',(w.gameLabel||'NBA')+' • '+formatDate(w.date)));
+   const stateLabel=w.status==='hit'?'✓ Atingiu ('+w.actual+')':w.status==='miss'?'✕ Não atingiu ('+w.actual+')':w.status==='unavailable'?'Resultado indisponível':'Aguardando resultado';
+   const badge=el('span','pill',stateLabel);badge.style.borderColor=w.status==='miss'?'#a95d5d':'#526943';badge.style.color=w.status==='miss'?'#ffaaa7':'var(--lime)';row.append(info);row.append(badge);
+   const del=el('button','btn','Remover');del.style.padding='8px';del.onclick=()=>{watch=watch.filter(x=>x.id!==w.id);saveWatchList();renderWatch()};row.append(del);out.append(row)
+ }
+}
+async function reviewWatch(){
+ $('#reviewAll').disabled=true;$('#reviewAll').textContent='Conferindo...';
+ const grouped=[...new Set(watch.filter(x=>x.status==='pending').map(x=>x.event))];
+ for(const event of grouped){
+   try{const d=await fetchJSON('/api/game?event='+event);if(!d.completed)continue;
+   for(const w of watch.filter(x=>x.event===event)){
+     const p=(d.players||[]).find(x=>String(x.id)===String(w.playerId));
+     if(!p||p.didNotPlay||!p.stats){w.status='unavailable';continue}
+     const val=statVal(p.stats,w.metric);if(val===null){w.status='unavailable';continue}
+     w.actual=val;w.status=val>=w.threshold?'hit':'miss';
+   }}catch{}
+ }
+ saveWatchList();renderWatch();$('#reviewAll').disabled=false;$('#reviewAll').textContent='↻ Conferir resultados'
+}
+$('#reviewAll').onclick=reviewWatch;
 function changePage(page){state.page=page;$$('.pageOnly').forEach(x=>x.classList.toggle('active',x.id==='page-'+page));$$('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$('#heading').textContent={home:'Dashboard NBA',players:'Análise individual',chat:'Assistente Claude NBA'}[page];document.querySelector('.main').scrollTo({top:0,behavior:'smooth'});if(page==='chat')renderChat();if(page==='players')renderFullStats()}
 $$('[data-page]').forEach(b=>b.addEventListener('click',()=>changePage(b.dataset.page)));
 function gameCard(g){const b=el('button','game'+(state.game?.id===g.id?' selected':''));b.setAttribute('aria-label','Abrir '+g.name);
@@ -88,6 +126,8 @@ function insightBody(){const panel=el('div');if(!state.log||!state.log.available
  const threshold=el('div','threshold');threshold.append(el('span','muted','Linha para frequência:'));const input=el('input','input');input.type='number';input.min='0';input.step='0.5';input.value=String(Math.max(0,Math.floor(avg(vals))));threshold.append(input);const result=el('strong','','');threshold.append(result);
  function updateHit(){const n=Number(input.value);result.textContent=Number.isFinite(n)?vals.filter(v=>v>=n).length+'/'+vals.length+' jogos ≥ '+n:'—'}
  input.oninput=updateHit;updateHit();panel.append(threshold);
+ if(state.game){const saveBtn=el('button','btn','＋ Salvar acompanhamento');saveBtn.style.marginTop='11px';saveBtn.onclick=()=>trackPlayer(state.stat,input.value);panel.append(saveBtn)}
+
  const note=el('div','info','A frequência mostra quantos jogos passados atingiram a linha. Não é probabilidade de acerto futura. Jogos com poucos minutos, defesa rival e desfalques podem mudar o desempenho.');panel.append(note);
  const source=el('div','statSource','Fonte: ESPN • histórico individual • última consulta: '+formatDate(state.log.updatedAt)+' • ');const l=el('a','','Conferir na ESPN');l.href=state.log.sourceUrl;l.target='_blank';l.rel='noopener noreferrer';source.append(l);panel.append(source);return panel}
 function renderInsights(){if(!state.player)return;const box=$('#insightsCard');clear(box);box.append(el('h2','',state.player.name));box.append(el('p','panelSubtitle','Últimas partidas disponíveis, com dados reais da ESPN.'));box.append(insightBody());const btn=el('button','btn primary','✦ Analisar com Claude');btn.style.marginTop='15px';btn.onclick=()=>askPlayer();box.append(btn)}
@@ -104,6 +144,6 @@ async function ask(prompt){let q=String(prompt||'').trim();if(!q)return;changePa
  save();renderChat();btn.disabled=false}
 $('#chatForm').onsubmit=e=>{e.preventDefault();ask($('#question').value)};$('#question').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(e.target.value)}};$$('[data-suggest]').forEach(b=>b.onclick=()=>ask(b.dataset.suggest));$('#newChat').onclick=()=>{if(confirm('Começar uma nova conversa?')){state.messages=[];save();renderChat()}}
 async function health(){try{const h=await fetchJSON('/api/health');$('#provider').textContent=h.ai?'● Claude conectado':'● Claude indisponível';$('#provider').style.color=h.ai?'var(--lime)':'#ffcd94'}catch{$('#provider').textContent='● Serviço indisponível'}}
-health();loadGames();renderChat();
+health();loadGames();renderChat();renderWatch();
 })();
 </script></body></html>
